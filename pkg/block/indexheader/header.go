@@ -40,6 +40,7 @@ type Reader interface {
 	// LabelValues returns all label values for given label name or error.
 	// If no values are found for label name, or label name does not exists,
 	// then empty string is returned and no error.
+	// The returned strings remain valid after the reader is closed or unloaded.
 	LabelValues(name string) ([]string, error)
 
 	// LabelNames returns all label names in sorted order.

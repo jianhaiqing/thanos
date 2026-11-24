@@ -17,7 +17,6 @@ import (
 	"sort"
 	"sync"
 	"time"
-	"unsafe"
 
 	"github.com/go-kit/log"
 	"github.com/go-kit/log/level"
@@ -1095,7 +1094,9 @@ func (r *BinaryReader) LabelValues(name string) ([]string, error) {
 		} else {
 			d.Skip(skip)
 		}
-		s := yoloString(d.UvarintBytes()) // Label value.
+		// The caller may retain these values after a lazy reader unloads its
+		// mmap, so the returned strings must own their backing memory.
+		s := string(d.UvarintBytes()) // Label value.
 		values = append(values, s)
 		if s == lastVal {
 			break
@@ -1106,10 +1107,6 @@ func (r *BinaryReader) LabelValues(name string) ([]string, error) {
 		return nil, errors.Wrap(d.Err(), "get postings offset entry")
 	}
 	return values, nil
-}
-
-func yoloString(b []byte) string {
-	return *((*string)(unsafe.Pointer(&b)))
 }
 
 func (r *BinaryReader) LabelNames() ([]string, error) {
