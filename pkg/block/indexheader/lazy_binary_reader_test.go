@@ -317,6 +317,13 @@ func TestLazyBinaryReader_LoadUnloadRaceCondition(t *testing.T) {
 					default:
 						_, err := r.PostingsOffset("a", "1")
 						testutil.Assert(t, err == nil || err == errUnloadedWhileLoading)
+
+						values, err := r.LabelValues("a")
+						testutil.Assert(t, err == nil || err == errUnloadedWhileLoading)
+						if err == nil {
+							// The other goroutine can unmap the reader before this comparison.
+							testutil.Equals(t, []string{"1", "2"}, values)
+						}
 					}
 				}
 			}()
